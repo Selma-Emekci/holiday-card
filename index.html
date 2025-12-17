@@ -1,0 +1,499 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Holiday Card</title>
+  <style>
+    :root{
+      --ink:#231942;
+      --radius:28px;
+      --glow: 0 24px 80px rgba(0,0,0,.18);
+      --soft: 0 14px 34px rgba(17, 11, 35, .12);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      overflow:hidden;
+      background: linear-gradient(135deg, #ffd1e8, #bfeeff 62%, #fff0c7);
+    }
+
+    canvas#snow{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      z-index:3;
+      opacity:0;
+      transition: opacity 500ms ease;
+    }
+    body.snowing canvas#snow{ opacity:1; }
+
+    .wrap{
+      height:100%;
+      width:100%;
+      display:grid;
+      place-items:center;
+      padding:18px 16px;
+      position:relative;
+      isolation:isolate;
+    }
+
+    .cardShell{
+      width:100%;
+      height:100%;
+      display:grid;
+      place-items:center;
+      perspective:1900px;
+      z-index:5;
+    }
+
+    .card{
+      width:min(820px, 96vw);
+      height:min(94vh, 980px);
+      position:relative;
+      transform-style:preserve-3d;
+      border-radius: var(--radius);
+      cursor:pointer;
+      user-select:none;
+      outline:none;
+      -webkit-tap-highlight-color: transparent;
+      filter: drop-shadow(0 24px 60px rgba(0,0,0,.16));
+    }
+    @media (max-width: 520px){
+      .card{ width:96vw; height:94vh; }
+    }
+
+    .layer{
+      position:absolute;
+      inset:0;
+      border-radius: var(--radius);
+      transform-style:preserve-3d;
+      overflow:hidden;
+    }
+
+    .back{
+      transform: translateZ(-2px);
+      background:
+        radial-gradient(900px 520px at 20% 20%, rgba(255,255,255,.45), transparent 62%),
+        radial-gradient(720px 520px at 82% 55%, rgba(255,255,255,.35), transparent 64%),
+        linear-gradient(135deg, rgba(255,92,170,.68), rgba(140,210,255,.72) 62%, rgba(255,236,190,.72));
+      border:1px solid rgba(255,255,255,.52);
+      box-shadow: var(--glow);
+    }
+
+    .inner{
+      background:
+        radial-gradient(900px 520px at 25% 18%, rgba(255,255,255,.92), rgba(255,255,255,.58) 45%, rgba(255,255,255,.14) 72%),
+        linear-gradient(145deg, rgba(255,255,255,.95), rgba(255,248,252,.88));
+      border:1px solid rgba(255,255,255,.72);
+      box-shadow: var(--glow);
+      transform: translateZ(0px);
+    }
+
+    .inner::before{
+      content:"";
+      position:absolute;
+      inset:-70px;
+      background:
+        radial-gradient(circle at 18% 26%, rgba(255,92,170,.10), transparent 45%),
+        radial-gradient(circle at 86% 34%, rgba(140,210,255,.10), transparent 45%),
+        radial-gradient(circle at 50% 92%, rgba(255,215,150,.08), transparent 45%);
+      filter: blur(14px);
+      opacity:.9;
+      pointer-events:none;
+    }
+
+    .innerContent{
+      position:absolute;
+      inset:16px;
+      border-radius: calc(var(--radius) - 16px);
+      background: rgba(255,255,255,.68);
+      border: 1px solid rgba(35,25,66,.10);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--soft);
+      padding:16px;
+      transform: translateZ(1px);
+      height:calc(100% - 32px);
+      overflow:hidden;
+    }
+
+    .letter{
+      height:100%;
+      border-radius:18px;
+      padding:16px 16px;
+      background:
+        radial-gradient(720px 280px at 20% 15%, rgba(255,92,170,.09), transparent 60%),
+        radial-gradient(720px 280px at 85% 30%, rgba(140,210,255,.09), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.70));
+      border:1px dashed rgba(35,25,66,.18);
+      box-shadow: 0 12px 26px rgba(0,0,0,.06);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .letterTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .letterTop h2{
+      margin:0;
+      font-size:18px;
+      letter-spacing:-.2px;
+      line-height:1.1;
+    }
+
+    .cornerArt{
+      width:70px;
+      height:70px;
+      background: transparent;
+      flex:0 0 auto;
+    }
+
+    .letter p{
+      margin:0 0 10px;
+      font-size:14.2px;
+      line-height:1.55;
+      opacity:.94;
+      font-weight:650;
+      white-space:pre-line;
+    }
+    .letter p:last-child{ margin-bottom:0; }
+
+    .linkBox{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .linkBox a{
+      text-decoration:none;
+      font-weight:950;
+      letter-spacing:.2px;
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid rgba(35,25,66,.10);
+      background: rgba(255,255,255,.84);
+      box-shadow: 0 14px 26px rgba(0,0,0,.08);
+      color:#231942;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      position:relative;
+      z-index:10;
+    }
+    .linkIcon{
+      width:16px;height:16px;border-radius:6px;
+      background: conic-gradient(from 0deg, rgba(255,92,170,.95), rgba(255,215,150,.95), rgba(140,210,255,.95), rgba(190,180,255,.95), rgba(255,92,170,.95));
+      box-shadow: 0 0 0 4px rgba(255,255,255,.54);
+    }
+
+    .frontWrap{ transform-style:preserve-3d; }
+
+    .front{
+      position:absolute;
+      inset:0;
+      border-radius: var(--radius);
+      transform-origin:left center;
+      transform: rotateY(0deg);
+      background:
+        radial-gradient(900px 520px at 25% 22%, rgba(255,255,255,.90), rgba(255,255,255,.54) 46%, rgba(255,255,255,.10) 70%),
+        linear-gradient(135deg, rgba(255,255,255,.90), rgba(255,248,252,.74)),
+        radial-gradient(650px 350px at 90% 75%, rgba(255,92,170,.08), transparent 55%),
+        radial-gradient(650px 350px at 10% 75%, rgba(140,210,255,.08), transparent 55%);
+      border:1px solid rgba(255,255,255,.78);
+      box-shadow: var(--glow);
+      will-change: transform;
+      backface-visibility:hidden;
+      transform-style:preserve-3d;
+    }
+
+    .frontInner{
+      position:absolute;
+      inset:14px;
+      border-radius: calc(var(--radius) - 14px);
+      background: rgba(255,255,255,.88);
+      border:1px solid rgba(35,25,66,.10);
+      box-shadow: var(--soft);
+      transform: translateZ(6px);
+      display:grid;
+      place-items:center;
+      padding:18px;
+      overflow:hidden;
+    }
+
+    .badge{
+      position:absolute;
+      top:18px;
+      right:18px;
+      padding:10px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.80);
+      border:1px solid rgba(35,25,66,.10);
+      backdrop-filter: blur(10px);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      box-shadow: 0 12px 24px rgba(0,0,0,.08);
+      font-weight:950;
+      font-size:12px;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+    }
+    .badge i{
+      width:10px;height:10px;border-radius:50%;
+      background: conic-gradient(from 0deg, rgba(255,92,170,.9), rgba(255,215,150,.9), rgba(140,210,255,.9), rgba(190,180,255,.9), rgba(255,92,170,.9));
+      box-shadow: 0 0 0 4px rgba(255,255,255,.58);
+    }
+
+    .headline{
+      text-align:center;
+      line-height:1.02;
+      margin:0;
+      font-size:clamp(42px, 6vw, 84px);
+      letter-spacing:-1px;
+      font-weight:1000;
+      text-shadow: 0 14px 25px rgba(0,0,0,.08);
+    }
+    .headline span{
+      display:block;
+      background: linear-gradient(90deg, rgba(255,92,170,.86), rgba(140,210,255,.86), rgba(190,180,255,.86));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .sub{
+      margin:14px 0 0;
+      font-size:clamp(14px, 1.8vw, 18px);
+      opacity:.9;
+      font-weight:780;
+      text-align:center;
+    }
+
+    .outsideImg{
+      width:min(420px, 74%);
+      aspect-ratio:4/3;
+      background: transparent;
+      margin:18px auto 0;
+      transform: translateZ(10px);
+    }
+
+    .hinge{
+      position:absolute;
+      left:14px; top:14px; bottom:14px;
+      width:14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,92,170,.14), rgba(140,210,255,.14), rgba(190,180,255,.14));
+      border:1px solid rgba(35,25,66,.10);
+      box-shadow: 0 14px 28px rgba(0,0,0,.10);
+      overflow:hidden;
+      transform: translateZ(8px);
+    }
+    .hinge::before{
+      content:"";
+      position:absolute;
+      inset:-20px;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,.62) 0 8px, rgba(255,255,255,0) 8px 18px);
+      opacity:.32;
+      transform: rotate(2deg);
+    }
+
+    .card.isOpen .front{ animation: openCard 1200ms cubic-bezier(.14,.92,.14,1) forwards; }
+    .card.isClosed .front{ animation: closeCard 900ms cubic-bezier(.2,.9,.18,1) forwards; }
+
+    @keyframes openCard{
+      0%{ transform: rotateY(0deg); }
+      55%{ transform: rotateY(-172deg); }
+      72%{ transform: rotateY(-156deg); }
+      100%{ transform: rotateY(-160deg); }
+    }
+    @keyframes closeCard{
+      0%{ transform: rotateY(-160deg); }
+      100%{ transform: rotateY(0deg); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="snow"></canvas>
+
+  <div class="wrap">
+    <div class="cardShell">
+      <div class="card isClosed" id="card" role="button" tabindex="0" aria-pressed="false" aria-label="Holiday card. Click to open.">
+        <div class="layer back"></div>
+
+        <div class="layer inner">
+          <div class="innerContent">
+            <div class="letter">
+              <div class="letterTop">
+                <h2>💌</h2>
+                <div class="cornerArt" id="cornerArt"></div>
+              </div>
+
+              <p>Dear Rihanna,</p>
+              <p>
+You are such a wonderful human being, and I loved getting to know you throughout this course so far. Your life perspectives are both interesting and relatable for me and your writing is so impressive! The need statement I wrote is as follows, "Rihanna needs a way to access educational and recreational opportunities because resource distribution is inadequate in her community." I know we agreed that a physical Learning Festival would be very effective, but corruption throughout every level of the system unfortunately prevents that. Therefore, my holiday gift to you is a digital learning festival you can access at this link:
+              </p>
+
+              <div class="linkBox">
+                <a id="giftLink" href="https://emekci.my.canva.site/online-learning-festival" target="_blank" rel="noopener noreferrer">
+                  <span class="linkIcon"></span>
+                  Open the Digital Learning Festival
+                </a>
+              </div>
+
+              <p>
+Happy holidays and I'm wishing you a wonderful winter season filled with the warmth of your family, friends, and community. I want you to know working on this project taught me a lot and I hope you like it! :D
+
+- Selma Emekci (your SeUS Classmate)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer frontWrap">
+          <div class="front" aria-hidden="true">
+            <div class="frontInner">
+              <div class="hinge"></div>
+              <div class="badge"><i></i> tap to open</div>
+              <div>
+                <h2 class="headline">
+                  <span>Happy</span>
+                  <span>Holidays</span>
+                </h2>
+                <div class="sub">A warm little note, from Selma 💖</div>
+                <div class="outsideImg" id="outsideImg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const card = document.getElementById('card');
+
+    const GIFT_URL = "https://emekci.my.canva.site/online-learning-festival";
+    const OUTSIDE_IMAGE_URL = "https://png.pngtree.com/png-vector/20231209/ourmid/pngtree-watercolor-illustration-of-a-cute-cartoon-winter-christmas-penguin-in-a-png-image_11083329.png";
+    const CORNER_IMAGE_URL = "";
+
+    document.getElementById('giftLink').href = GIFT_URL;
+
+    function setPNG(el, url){
+      if(!url) return;
+      el.style.background = `url("${url}") center/contain no-repeat`;
+    }
+    setPNG(document.getElementById('outsideImg'), OUTSIDE_IMAGE_URL);
+    setPNG(document.getElementById('cornerArt'), CORNER_IMAGE_URL);
+
+    function rand(min,max){ return Math.random()*(max-min)+min; }
+
+    const snowCanvas = document.getElementById('snow');
+    const sctx = snowCanvas.getContext('2d', { alpha:true });
+    let W=0,H=0,dpr=1,flakes=[],raf=0,active=false,fadeTimer=0;
+
+    function resizeSnow(){
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      W = Math.floor(window.innerWidth * dpr);
+      H = Math.floor(window.innerHeight * dpr);
+      snowCanvas.width = W;
+      snowCanvas.height = H;
+    }
+    window.addEventListener('resize', resizeSnow, {passive:true});
+    resizeSnow();
+
+    function makeFlake(){
+      const size = rand(1.2, 3.4) * dpr;
+      return { x: rand(0,W), y: rand(-H,0), r:size, vy: rand(0.55,1.65)*dpr, vx: rand(-0.32,0.32)*dpr, wob: rand(0,Math.PI*2), wobSp: rand(0.006,0.02), a: rand(0.30,0.85) };
+    }
+    function seedSnow(count){ flakes = Array.from({length: count}, makeFlake); }
+
+    function drawSnow(){
+      if(!active) return;
+      sctx.clearRect(0,0,W,H);
+      for(const f of flakes){
+        f.wob += f.wobSp;
+        f.x += f.vx + Math.sin(f.wob) * 0.25 * dpr;
+        f.y += f.vy;
+
+        if(f.y > H + 30*dpr){ f.y = rand(-60*dpr, -10*dpr); f.x = rand(0,W); }
+        if(f.x < -30*dpr) f.x = W + 30*dpr;
+        if(f.x > W + 30*dpr) f.x = -30*dpr;
+
+        sctx.globalAlpha = f.a;
+        sctx.beginPath();
+        sctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        sctx.fillStyle = 'white';
+        sctx.fill();
+      }
+      sctx.globalAlpha = 1;
+      raf = requestAnimationFrame(drawSnow);
+    }
+
+    function startSnow(){
+      clearTimeout(fadeTimer);
+      if(!active){
+        active = true;
+        seedSnow(Math.floor(170 * (window.innerWidth < 700 ? 0.75 : 1)));
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(drawSnow);
+      }
+      document.body.classList.add('snowing');
+    }
+
+    function stopSnowSoon(){
+      document.body.classList.remove('snowing');
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(()=>{
+        active = false;
+        cancelAnimationFrame(raf);
+        sctx.clearRect(0,0,W,H);
+      }, 650);
+    }
+
+    let isOpen = false;
+    let animLock = false;
+
+    function setOpen(next){
+      if(animLock) return;
+      animLock = true;
+
+      isOpen = next;
+      card.setAttribute('aria-pressed', String(isOpen));
+
+      card.classList.toggle('isOpen', isOpen);
+      card.classList.toggle('isClosed', !isOpen);
+
+      if(isOpen) startSnow(); else stopSnowSoon();
+
+      setTimeout(()=>{ animLock = false; }, isOpen ? 1220 : 920);
+    }
+
+    function toggle(){ setOpen(!isOpen); }
+
+    card.addEventListener('click', (e)=>{
+      if(e.target && e.target.closest && e.target.closest('a')) return;
+      toggle();
+    });
+
+    card.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        toggle();
+      }
+    });
+  </script>
+</body>
+</html>
